@@ -163,6 +163,15 @@ on failure and need nothing beyond the Python standard library.
 
 Full per-colour measurements are in [`docs/PALETTE.md`](docs/PALETTE.md).
 
+```
+python3 tools/build_preview.py         # regenerate docs/preview.html
+```
+
+[`docs/preview.html`](docs/preview.html) is a self-contained calibration sheet: all three variants
+rendered in a mock editor on real TypeScript, the measured hue table, and a chart of reachable
+chroma by hue showing the light-gamut dead zones. Colours are read out of `themes/dr-syntax.json`,
+so the preview cannot drift from what ships.
+
 ---
 
 ## Licence
