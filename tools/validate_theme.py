@@ -14,6 +14,9 @@ Checks:
   * required key coverage against the baseline shipped by Zed's own One theme
   * syntax entries are {color, font_style, font_weight} with legal values
   * players[] is 8 entries of {cursor, background, selection}
+  * every syntax token clears its published contrast floor against that
+    variant's own editor.background - measured from the shipped colours, not
+    recomputed from the generator
   * every syntax token stays readable under every translucent overlay, on both
     the plain background and the active line (the state that hides comments in
     most themes)
@@ -32,6 +35,24 @@ THEME = ROOT / "themes" / "dr-syntax.json"
 BASELINE = ROOT / "tools" / "required_keys.json"
 
 HEX8 = re.compile(r"^#[0-9a-f]{8}$")
+
+# The published contrast contract, asserted against the shipped file.
+#
+# build_theme.py checks these too, but it checks colours it has just computed in
+# memory. That verifies the generator, not the artifact: a themes/dr-syntax.json
+# edited by hand, merged badly, or written by an older generator would sail past
+# it. These floors are therefore re-derived here from the hex values Zed will
+# actually load. Floors sit just under the values the design targets, so this
+# asserts the contract rather than pinning today's exact numbers.
+AAA_FLOOR = 7.0
+TOKEN_FLOORS = {
+    "comment": 5.5, "comment.doc": 5.5,   # deliberately recessive
+    "hint": 5.5,                          # inlay hints: read, but quiet
+    "predictive": 3.0,                    # ghost text for an unaccepted suggestion
+    "operator": 4.5, "punctuation": 4.5, "punctuation.bracket": 4.5,
+    "punctuation.delimiter": 4.5, "punctuation.list_marker": 4.5,
+    "punctuation.markup": 4.5, "punctuation.special": 4.5,
+}
 
 # Transient-overlay contrast floor. Sustained reading is asserted in
 # build_theme.py against the plain background; this is the selected/highlighted
@@ -66,6 +87,27 @@ def _luminance(rgb: tuple[int, int, int]) -> float:
 def _contrast(a: tuple[int, int, int], b: tuple[int, int, int]) -> float:
     la, lb = _luminance(a), _luminance(b)
     return (max(la, lb) + 0.05) / (min(la, lb) + 0.05)
+
+
+def audit_contracts(vname: str, style: dict) -> tuple[list[str], int, float]:
+    """Every syntax token against its floor, measured from the shipped hex."""
+    errors: list[str] = []
+    bg = _rgba(style["editor.background"])[0]
+    worst = (99.0, "")
+    for token, spec in style["syntax"].items():
+        floor = TOKEN_FLOORS.get(token, AAA_FLOOR)
+        ratio = _contrast(_rgba(spec["color"])[0], bg)
+        if floor >= AAA_FLOOR and ratio < worst[0]:
+            worst = (ratio, token)
+        if ratio < floor:
+            errors.append(f"{vname}: syntax['{token}'] = {ratio:.2f}:1 against "
+                          f"editor.background, below its {floor}:1 floor")
+    for label, key, floor in (("editor.foreground", "editor.foreground", AAA_FLOOR),
+                              ("text", "text", 4.5), ("text.muted", "text.muted", 4.5)):
+        ratio = _contrast(_rgba(style[key])[0], bg)
+        if ratio < floor:
+            errors.append(f"{vname}: {label} = {ratio:.2f}:1, below its {floor}:1 floor")
+    return errors, len(style["syntax"]) + 3, worst[0]
 
 
 def audit_overlays(vname: str, style: dict) -> tuple[list[str], int, float]:
@@ -203,12 +245,15 @@ def main() -> int:
                     if not HEX8.match(str(a)):
                         errors.append(f"{vname}: accents[{i}] is not #rrggbbaa")
 
+        contract_errors, n_contract, worst_aaa = audit_contracts(vname, style)
+        errors.extend(contract_errors)
         overlay_errors, measured, worst = audit_overlays(vname, style)
         errors.extend(overlay_errors)
 
         if not errors:
             n_syn = len(style.get("syntax", {}))
             print(f"  ok  {vname:<20} {len(style) - 3} colour keys, {n_syn} syntax keys, "
+                  f"{n_contract} contract checks (worst AAA {worst_aaa:.2f}:1), "
                   f"{measured} overlay measurements (worst {worst:.2f}:1)")
 
     for w in warnings:

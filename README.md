@@ -20,15 +20,20 @@ a ported TextMate theme fills in.
 
 For reference, Zed's own bundled One theme sets 139 of the 185.
 
-| Variant | Background | Syntax plane | Minimum contrast |
+| Variant | Background | Syntax plane | Lowest AAA token |
 |---|---|---|---|
 | Dr. Syntax Dark | `#13161d` | OKLCH L 0.737 | **7.16:1** |
 | Dr. Syntax OLED | `#000000` | OKLCH L 0.799 | **10.53:1** |
-| Dr. Syntax Light | `#f9fbff` | OKLCH L 0.439 | **7.14:1** |
+| Dr. Syntax Light | `#f9fbff` | OKLCH L 0.439 | **7.05:1** |
 
-Every syntax colour in every variant clears **WCAG AAA (7:1)** against its editor background.
-That is a measured claim, not a marketing one: `tools/build_theme.py` fails the build if any
-colour misses its floor, and the numbers are printed on every run.
+Every syntax colour in every variant clears **WCAG AAA (7:1)** against its editor background —
+excepting comments, inlay hints, punctuation and ghost text, which are deliberately quieter and
+carry their own published floors.
+
+That is a measured claim, not a marketing one, and it is measured **from the shipped
+`themes/dr-syntax.json`** rather than from the generator that produced it. The figures above are
+the lowest AAA-floor token in each variant, whichever token that happens to be — on Light it is
+`diff.plus` at 7.05:1, not one of the eight syntax hues.
 
 ---
 
@@ -174,6 +179,10 @@ python3 tools/build_theme.py --check   # verify only, writes nothing
 python3 tools/validate_theme.py        # structural + key-coverage validation
 ```
 
+```
+python3 tools/test_build.py            # 50 checks: colour maths, highlighter, contracts
+```
+
 `build_theme.py` runs 44 contrast assertions per variant and checks perceptual separation, and
 refuses to write the theme if any fail.
 
@@ -181,6 +190,11 @@ refuses to write the theme if any fail.
 `build_theme.py` cannot vouch for its own output. It verifies structure and colour format, key
 coverage, and re-derives all 4,092 overlay contrast measurements from the JSON alone. Both scripts
 exit non-zero on failure and need nothing beyond the Python standard library.
+
+`test_build.py` pins the claims made here: the OKLCH round-trip is exact over 608 colours, gamut
+mapping never shifts lightness or hue, the highlighter preserves its input and escapes markup, and
+the validator actually rejects a faded token, a buried selection and an indistinguishable tab. A
+checker that has never failed is not known to work.
 
 Coverage is checked against `tools/required_keys.json` — every non-deprecated `#[serde(rename)]`
 in Zed's own `ThemeColorsContent` and `StatusColorsContent`. An earlier version of this repo

@@ -24,8 +24,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 
 from build_theme import (  # noqa: E402
-    SYNTAX_HUES, VIM_MODES, Palette, contrast, gamut_fit_chroma, oklch,
+    SYNTAX_HUES, VIM_MODES, Palette, contrast, gamut_fit_chroma, oklch, rgb_to_oklch,
 )
+from validate_theme import AAA_FLOOR, TOKEN_FLOORS, _contrast, _rgba  # noqa: E402
 
 OUT = ROOT / "website"
 THEME = json.loads((ROOT / "themes" / "dr-syntax.json").read_text())
@@ -584,6 +585,17 @@ SYN_VARS = {"keyword": "kw", "function": "fn", "string": "str", "type": "typ",
             "number": "num", "property": "prop", "comment": "cmt",
             "punctuation": "punc", "tag": "tag"}
 
+# The syntax token that carries each hue role, so the site can look the colour up
+# in the shipped file rather than asking the generator what it should have been.
+HUE_TOKEN = {"rose": "keyword", "orchid": "tag", "violet": "attribute",
+             "azure": "property", "cyan": "function", "jade": "string",
+             "amber": "type", "tangerine": "number"}
+
+
+def _hue_token(role: str) -> str:
+    return HUE_TOKEN[role]
+
+
 ROLE_LABEL = {
     "rose": "keyword · control flow", "orchid": "tag · namespace · title",
     "violet": "attribute · preprocessor", "azure": "property · member",
@@ -612,33 +624,50 @@ KEY_GROUPS = [
 
 
 def variant_data(full: bool) -> dict:
+    """Read the shipped theme.
+
+    Every number the site prints is measured from the hex values it is about to
+    render. Deriving them from the generator instead would let the page state a
+    contrast it is not showing - the statistics and the swatches would come from
+    two different sources, and only one of them is what Zed loads.
+    """
     out = {}
     for key, theme in zip(KEYS, THEME["themes"]):
         s = theme["style"]
-        p = Palette(key)
-        ed = p.editor_rgb
+        p = Palette(key)                      # hue roles and angles only
+        ed = _rgba(s["editor.background"])[0]
+
+        syn_rgb = {t: _rgba(v["color"])[0] for t, v in s["syntax"].items()}
+        aaa = {t: _contrast(c, ed) for t, c in syn_rgb.items()
+               if TOKEN_FLOORS.get(t, AAA_FLOOR) >= AAA_FLOOR}
+        planes = [rgb_to_oklch(syn_rgb[_hue_token(h)]) for h in SYNTAX_HUES]
+        sel_alpha = _rgba(s["players"][0]["selection"])[1]
+
         entry = {
             "name": theme["name"], "appearance": theme["appearance"],
             "short": theme["name"].replace("Dr. Syntax ", ""),
             "ui": {v: s[k] for k, v in UI_VARS.items()},
             "syn": {v: s["syntax"][k]["color"] for k, v in SYN_VARS.items()},
-            "plane": round(p.syn_L, 3),
-            "chroma": round(sum(p.hue[h].C for h in SYNTAX_HUES) / 8, 3),
-            "minSyntax": round(min(contrast(p.hue[h].rgb, ed) for h in SYNTAX_HUES), 2),
-            "comment": round(contrast(p.comment.rgb, ed), 2),
-            "foreground": round(contrast(p.editor_fg.rgb, ed), 2),
-            "selectionAlpha": round(p.selection_alpha, 3),
+            "plane": round(sum(L for L, _, _ in planes) / len(planes), 3),
+            "chroma": round(sum(C for _, C, _ in planes) / len(planes), 3),
+            "minSyntax": round(min(aaa.values()), 2),
+            "comment": round(_contrast(syn_rgb["comment"], ed), 2),
+            "foreground": round(_contrast(_rgba(s["editor.foreground"])[0], ed), 2),
+            "selectionAlpha": round(sel_alpha, 3),
             "editorBg": s["editor.background"][:7],
-            "hues": [{"role": h, "label": ROLE_LABEL[h], "hex": p.hue[h].hex()[:7],
-                      "angle": round(p.hues[h]), "chroma": round(p.hue[h].C, 3),
-                      "ratio": round(contrast(p.hue[h].rgb, ed), 2)} for h in SYNTAX_HUES],
+            "hues": [{"role": h, "label": ROLE_LABEL[h],
+                      "hex": s["syntax"][_hue_token(h)]["color"][:7],
+                      "angle": round(rgb_to_oklch(syn_rgb[_hue_token(h)])[2]),
+                      "chroma": round(rgb_to_oklch(syn_rgb[_hue_token(h)])[1], 3),
+                      "ratio": round(aaa[_hue_token(h)], 2)} for h in SYNTAX_HUES],
             "ansi": [s[f"terminal.ansi.{n}"] for n in
                      ("black", "red", "green", "yellow", "blue", "magenta", "cyan", "white")],
             "ansiBright": [s[f"terminal.ansi.bright_{n}"] for n in
                            ("black", "red", "green", "yellow", "blue", "magenta", "cyan", "white")],
             "vim": [{"mode": m, "bg": s[f"vim.{m}.background"],
                      "fg": s[f"vim.{m}.foreground"],
-                     "ratio": round(contrast(p.vim[m][1].rgb, p.vim[m][0].rgb), 2)}
+                     "ratio": round(_contrast(_rgba(s[f"vim.{m}.foreground"])[0],
+                                              _rgba(s[f"vim.{m}.background"])[0]), 2)}
                     for m in VIM_MODES],
         }
         if full:
