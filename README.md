@@ -1,6 +1,17 @@
-# Dr. Syntax
+<p align="center">
+  <img src="docs/dr-syntax-logo.png" alt="Dr. Syntax" width="180">
+</p>
 
-A theme family for [Zed](https://zed.dev), in three variants: **Dark**, **OLED** and **Light**.
+<h1 align="center">Dr. Syntax</h1>
+
+<p align="center">
+  A theme family for <a href="https://zed.dev">Zed</a>, in three variants:
+  <strong>Dark</strong>, <strong>OLED</strong> and <strong>Light</strong>.
+</p>
+
+<p align="center">
+  <a href="https://chrisnicholson30.github.io/Dr.-Syntax/"><strong>See it running →</strong></a>
+</p>
 
 Built for Zed specifically — **every one of the 185 colour keys** the Zed theme schema accepts,
 plus 62 syntax keys, per variant. That includes the Vim and Helix mode indicators, editor diff
@@ -179,13 +190,17 @@ because One does not set them either. A baseline has to be the schema, not anoth
 Full per-colour measurements are in [`docs/PALETTE.md`](docs/PALETTE.md).
 
 ```
-python3 tools/build_preview.py         # regenerate docs/preview.html
+python3 tools/build_preview.py         # regenerate docs/index.html
 ```
 
-[`docs/preview.html`](docs/preview.html) is a self-contained calibration sheet: all three variants
-rendered in a mock editor on real TypeScript, the measured hue table, and a chart of reachable
-chroma by hue showing the light-gamut dead zones. Colours are read out of `themes/dr-syntax.json`,
-so the preview cannot drift from what ships.
+[`docs/index.html`](docs/index.html) is the project page, published at
+**[chrisnicholson30.github.io/Dr.-Syntax](https://chrisnicholson30.github.io/Dr.-Syntax/)**: all
+three variants rendered in a mock editor on real TypeScript, the measured hue table, and a chart
+of reachable chroma by hue showing the light-gamut dead zones. Colours are read out of
+`themes/dr-syntax.json`, so the page cannot drift from what ships.
+
+The site deploys from `.github/workflows/pages.yml`, which runs both verification scripts first —
+a failing contrast assertion fails the deploy.
 
 ---
 

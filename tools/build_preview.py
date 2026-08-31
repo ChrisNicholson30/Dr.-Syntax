@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """
-Generate docs/preview.html - a calibration sheet for the Dr. Syntax family.
+Generate docs/index.html - the project page for the Dr. Syntax family.
+
+Doubles as the GitHub Pages site and the shareable preview. The logo is inlined
+as a data URI rather than referenced, so the single file renders identically
+from GitHub Pages, from a local checkout, and from a published artifact - none
+of which resolve relative asset paths the same way.
 
 Colours are read out of themes/dr-syntax.json rather than restated here, so the
 preview cannot drift from what actually ships. Run after build_theme.py.
@@ -19,7 +24,9 @@ from build_theme import (  # noqa: E402
 )
 
 THEME = json.loads((ROOT / "themes" / "dr-syntax.json").read_text())
-OUT = ROOT / "docs" / "preview.html"
+OUT = ROOT / "docs" / "index.html"
+LOGO = ROOT / "docs" / "dr-syntax-logo.webp"
+REPO = "https://github.com/ChrisNicholson30/Dr.-Syntax"
 
 KEYS = ("dark", "oled", "light")
 ROLE_LABEL = {
@@ -294,6 +301,36 @@ h1{font-size:clamp(30px,5vw,44px); line-height:1.05; margin:0; letter-spacing:-.
   letter-spacing:.06em; color:var(--faint);}
 .spec-line b{color:var(--ink); font-weight:500;}
 
+/* ---- brand ---- */
+.brand{display:flex; gap:28px; align-items:flex-start;}
+.logo{width:150px; height:150px; flex:none; border-radius:50%;
+  filter:drop-shadow(0 8px 26px rgba(70,60,190,.30));}
+.brand-text{display:flex; flex-direction:column; gap:12px; min-width:0;}
+.cta{display:flex; flex-wrap:wrap; gap:10px; margin-top:4px;}
+.btn{display:inline-flex; align-items:center; padding:9px 18px; border-radius:8px;
+  border:1px solid var(--rule-strong); color:var(--ink); text-decoration:none;
+  font-size:14px; font-weight:500; transition:background .16s ease, border-color .16s ease;}
+.btn:hover{background:var(--raised); border-color:var(--accent);}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:var(--ground);}
+.btn.primary:hover{filter:brightness(1.08);}
+.btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+/* ---- install ---- */
+.steps{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:18px;}
+.step{border:1px solid var(--rule); border-radius:9px; background:var(--surface);
+  padding:16px 18px; display:flex; flex-direction:column; gap:8px;}
+pre{margin:0; overflow-x:auto; background:var(--surface); border:1px solid var(--rule);
+  border-radius:8px; padding:13px 15px;}
+pre code{font-family:"JetBrains Mono",ui-monospace,monospace; font-size:12.5px;
+  color:var(--ink); background:none; padding:0;}
+pre code .c{color:var(--faint);}
+/* A repo URL is longer than a third of the grid; let it wrap rather than clip. */
+.step pre{overflow-x:visible;}
+.step pre code{white-space:pre-wrap; overflow-wrap:anywhere;}
+kbd{font-family:"JetBrains Mono",ui-monospace,monospace; font-size:11.5px;
+  border:1px solid var(--rule-strong); border-bottom-width:2px; border-radius:5px;
+  padding:1px 5px; background:var(--raised);}
+
 /* ---- variant switcher ---- */
 .switch{display:flex; gap:4px; padding:4px; border:1px solid var(--rule);
   border-radius:9px; background:var(--surface); width:fit-content;}
@@ -412,6 +449,8 @@ footer a{color:var(--accent);}
 }
 @media (max-width:640px){
   .wrap{padding:28px 16px 64px; gap:34px;}
+  .brand{flex-direction:column; gap:18px;}
+  .logo{width:104px; height:104px;}
   .gutter-num{flex-basis:40px; padding-right:11px;}
   .editor{font-size:12px;}
 }
@@ -419,6 +458,7 @@ footer a{color:var(--accent);}
 
 
 TEMPLATE = """<title>Dr. Syntax</title>
+<meta name="description" content="A Zed theme family in Dark, OLED and Light. Built in OKLCH, verified against WCAG contrast floors, covering all 185 colour keys the Zed theme schema accepts.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap">
@@ -426,13 +466,21 @@ TEMPLATE = """<title>Dr. Syntax</title>
 
 <div class="wrap">
   <header class="masthead">
-    <p class="eyebrow">Zed theme family · calibration sheet</p>
-    <div class="title-row">
-      <h1>Dr. Syntax</h1>
+    <div class="brand">
+      <img class="logo" src="__LOGO__" alt="Dr. Syntax logo: a lab-coated doctor in code-lens
+        sunglasses holding a syringe full of braces" width="150" height="150">
+      <div class="brand-text">
+        <p class="eyebrow">Zed theme family · three variants</p>
+        <h1>Dr. Syntax</h1>
+        <p class="standfirst">Built in OKLCH, where every syntax token shares one perceptual
+          lightness plane and every colour is solved against a contrast floor rather than picked
+          by eye. All 185 colour keys the Zed theme schema accepts, in Dark, OLED and Light.</p>
+        <div class="cta">
+          <a class="btn primary" href="#install">Install</a>
+          <a class="btn" href="__REPO__">View on GitHub</a>
+        </div>
+      </div>
     </div>
-    <p class="standfirst">Three variants built in OKLCH, where every syntax token shares one
-      perceptual lightness plane and every colour is solved against a contrast floor rather than
-      picked by eye.</p>
     <div class="spec-line">
       <span>plane <b id="s-plane">—</b></span>
       <span>min syntax contrast <b id="s-min">—</b></span>
@@ -504,9 +552,36 @@ TEMPLATE = """<title>Dr. Syntax</title>
     </div>
   </section>
 
+  <section id="install">
+    <h2>Install</h2>
+    <p class="note">Zed loads themes from an extension directory. Until Dr. Syntax is in the
+      extension store, install it as a dev extension — same result, one extra step.</p>
+    <div class="steps">
+      <div class="step">
+        <p class="eyebrow">1 · Clone</p>
+        <pre><code>git clone __REPO__</code></pre>
+      </div>
+      <div class="step">
+        <p class="eyebrow">2 · Load it</p>
+        <p class="note"><kbd>cmd</kbd>+<kbd>shift</kbd>+<kbd>P</kbd> →
+          <b>zed: install dev extension</b> → choose the cloned folder.</p>
+      </div>
+      <div class="step">
+        <p class="eyebrow">3 · Pick a variant</p>
+        <p class="note"><kbd>cmd</kbd>+<kbd>shift</kbd>+<kbd>P</kbd> →
+          <b>theme selector: toggle</b> → <i>Dr. Syntax Dark</i>, <i>OLED</i> or <i>Light</i>.</p>
+      </div>
+    </div>
+    <p class="note">Every claim on this page is reproducible from a checkout. Both scripts are
+      standard-library Python and exit non-zero on failure:</p>
+    <pre><code>python3 tools/build_theme.py --check   <span class="c"># 44 contrast assertions per variant</span>
+python3 tools/validate_theme.py        <span class="c"># key coverage + 4,092 overlay measurements</span></code></pre>
+  </section>
+
   <footer>
     <p>Generated from <code>themes/dr-syntax.json</code>. Contrast measured on final 8-bit sRGB
-    values, against each variant's own editor background.</p>
+    values, against each variant's own editor background.
+    <a href="__REPO__">Source on GitHub</a> · MIT licensed.</p>
   </footer>
 </div>
 
@@ -562,6 +637,12 @@ SYN_VARS = {"keyword": "kw", "function": "fn", "string": "str", "type": "typ",
             "punctuation": "punc", "string.escape": "esc"}
 
 
+def logo_data_uri() -> str:
+    """Inline the mark so one file works from Pages, a checkout, and an artifact alike."""
+    import base64
+    return "data:image/webp;base64," + base64.b64encode(LOGO.read_bytes()).decode("ascii")
+
+
 def editor_vars(v: dict) -> str:
     """Inline the default variant so the editor renders before, and without, JS."""
     parts = [f"--e-{name}:{v['ui'][k]}" for k, name in UI_VARS.items()]
@@ -582,6 +663,8 @@ def main() -> int:
             .replace("__CODE__", render_code())
             .replace("__CHART__", render_chart(chroma_curves()))
             .replace("__EDITORVARS__", editor_vars(data["dark"]))
+            .replace("__LOGO__", logo_data_uri())
+            .replace("__REPO__", REPO)
             .replace("__DATA__", json.dumps(data, separators=(",", ":"))))
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(html, encoding="utf-8")
