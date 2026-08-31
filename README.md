@@ -202,6 +202,11 @@ of reachable chroma by hue showing the light-gamut dead zones. Colours are read 
 The site deploys from `.github/workflows/pages.yml`, which runs both verification scripts first —
 a failing contrast assertion fails the deploy.
 
+> **One-time setup:** Settings → Pages → Build and deployment → Source: **GitHub Actions**.
+> Creating a Pages site needs repo-admin rights, which the workflow token does not have, so the
+> first enable has to be done by hand. Until then the `verify` job passes and `build` stops at
+> `actions/configure-pages`.
+
 ---
 
 ## Licence

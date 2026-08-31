@@ -1,11 +1,19 @@
 name: Pages
 
-# The site is the theme's shop window, so it does not go out unless the theme
-# passes its own contracts first. A failing contrast assertion fails the deploy.
+# Two jobs on purpose. `verify` is real CI and stands on its own: it runs the
+# theme's contracts on every push and never depends on hosting. `build`/`deploy`
+# publish the site and are gated on it, so a failing contrast assertion fails the
+# deploy rather than shipping a shop window for a broken theme.
+#
+# ONE-TIME SETUP: Settings → Pages → Build and deployment → Source: GitHub Actions.
+# The workflow token can deploy to Pages but cannot create the Pages site itself
+# (that needs repo admin), so the first enable has to be done by a human. Until
+# it is, `verify` passes and `build` fails at actions/configure-pages.
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -18,34 +26,38 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  verify:
+    name: Verify theme contracts
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
-      - name: Verify theme contracts
+      - name: Contrast, separation and key coverage
         run: |
           python3 tools/build_theme.py --check
           python3 tools/validate_theme.py
 
+  build:
+    name: Build site
+    needs: verify
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
       - name: Rebuild the site from the committed theme
         run: python3 tools/build_preview.py
-
-      # enablement turns Pages on via the API on the first run, so the repo needs
-      # no manual settings change. It is a no-op once Pages is already enabled.
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
-
       - uses: actions/upload-pages-artifact@v3
         with:
           path: docs
 
   deploy:
+    name: Deploy to Pages
     needs: build
     runs-on: ubuntu-latest
     environment:
