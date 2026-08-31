@@ -1,0 +1,7 @@
+id = "dr-syntax"
+name = "Dr. Syntax"
+version = "1.0.0"
+schema_version = 1
+authors = ["Christopher Nicholson"]
+description = "A perceptually-uniform theme family for Zed. Vibrant, WCAG AAA, in dark, OLED and light."
+repository = "https://github.com/chrisnicholson30/dr.-syntax"
