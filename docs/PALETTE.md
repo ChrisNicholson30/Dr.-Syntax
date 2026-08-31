@@ -50,7 +50,7 @@ colours actually rendered - not the pre-quantisation floats.
 
 ### Verification
 
-- 29 contrast assertions, 29 passing.
+- 44 contrast assertions, 44 passing.
 - Minimum syntax contrast: 7.16:1 (floor 7.0:1, WCAG AAA).
 
 ## Dr. Syntax OLED
@@ -96,7 +96,7 @@ colours actually rendered - not the pre-quantisation floats.
 
 ### Verification
 
-- 29 contrast assertions, 29 passing.
+- 44 contrast assertions, 44 passing.
 - Minimum syntax contrast: 10.53:1 (floor 7.0:1, WCAG AAA).
 
 ## Dr. Syntax Light
@@ -142,6 +142,6 @@ colours actually rendered - not the pre-quantisation floats.
 
 ### Verification
 
-- 29 contrast assertions, 29 passing.
+- 44 contrast assertions, 44 passing.
 - Minimum syntax contrast: 7.14:1 (floor 7.0:1, WCAG AAA).
 

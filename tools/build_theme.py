@@ -269,6 +269,21 @@ NEUTRAL_H = 265.0  # a whisper of blue in every grey, so the UI reads as one fam
 
 SYNTAX_HUES = ["rose", "orchid", "violet", "azure", "cyan", "jade", "amber", "tangerine"]
 
+# Vim / Helix mode indicators. Each is a chip in the status bar carrying its own
+# label, so the pair has to be legible against itself, not against the editor.
+# Hues are assigned semantically: green for insert, red for replace, the accent
+# family for the visual modes.
+VIM_MODES = {
+    "normal": "azure",
+    "insert": "jade",
+    "replace": "rose",
+    "visual": "violet",
+    "visual_line": "orchid",
+    "visual_block": "cyan",
+    "helix_normal": "tangerine",
+    "helix_select": "amber",
+}
+
 # Light backgrounds are not dark backgrounds inverted. At the lightness a light
 # theme needs to clear AAA, two regions of the sRGB gamut collapse: 60-120 deg
 # (yellow) and 165-240 deg (teal/cyan) can only hold ~0.08-0.10 chroma, which
@@ -388,6 +403,21 @@ class Palette:
         direction = prefer_lighter if reachable >= target else not prefer_lighter
         bg_L = self.spec["bg_editor"]
         return oklch(solve_L(target, ed, nc, NEUTRAL_H, lighter=direction, bound=bg_L),
+                     nc, NEUTRAL_H)
+
+    def _on_chip(self, chip: Color, target: float = 7.0) -> Color:
+        """A neutral that reads cleanly *on* `chip`.
+
+        Mode indicators carry their own label, so the pair is judged against
+        itself. Whichever direction has more room is used - dark text on the
+        bright chips of a dark theme, light text on the deep chips of a light one.
+        """
+        nc = self.spec["neutral_c"]
+        lighter = contrast((255, 255, 255), chip.rgb) > contrast((0, 0, 0), chip.rgb)
+        reach = contrast((255, 255, 255) if lighter else (0, 0, 0), chip.rgb)
+        if reach < target:                       # target unreachable: take the extreme
+            return oklch(1.0 if lighter else 0.0, 0.0, NEUTRAL_H)
+        return oklch(solve_L(target, chip.rgb, nc, NEUTRAL_H, lighter=lighter, bound=chip.L),
                      nc, NEUTRAL_H)
 
     def __init__(self, key: str):
@@ -522,6 +552,25 @@ class Palette:
         self.active_match_alpha = solve_overlay_alpha(
             [self.hue["tangerine"].rgb], bases, protected, FLOOR_OVERLAY, cap=0.42)
 
+        # Diff hunk fills sit *behind* code, so they take the overlay contract too.
+        # Zed's own fallback is 0.16 fill / 0.08 hollow / 0.48 hollow border; the
+        # cap honours that and the solver pulls it back only if readability needs it.
+        self.hunk_alpha = solve_overlay_alpha(
+            [self.success.rgb, self.error.rgb], bases, protected, FLOOR_OVERLAY, cap=0.16)
+        self.hunk_hollow_alpha = round(self.hunk_alpha / 2, 3)
+        self.hunk_border_alpha = 0.48
+        # The yank flash is a highlight over code - same contract as a search match.
+        self.yank_alpha = solve_overlay_alpha(
+            [self.hue["amber"].rgb], bases, protected, FLOOR_OVERLAY, cap=0.30)
+
+        self.vim = {
+            mode: (self.hue[h], self._on_chip(self.hue[h]))
+            for mode, h in VIM_MODES.items()
+        }
+        # Helix jump labels are single characters overlaid on code; they have to be
+        # found instantly, so they sit on the syntax plane at full contrast.
+        self.helix_jump_label = self.hue["rose"]
+
         term_keys = ("red", "grass", "gold", "azure", "violet", "cyan")
 
         def th(k: str) -> float:
@@ -589,6 +638,20 @@ def verify(p: Palette) -> list[Check]:
                         contrast(p.active_line.rgb, bg), 1.10))
     checks.append(Check("ui/active-tab-distinct",
                         contrast(bg, p.tab_inactive.rgb), 1.08))
+
+    # Mode indicators are judged against their own chip, not the editor.
+    for mode, (chip, label) in p.vim.items():
+        checks.append(Check(f"vim/{mode}-label-on-chip", contrast(label.rgb, chip.rgb), 7.0))
+    checks.append(Check("vim/helix-jump-label",
+                        contrast(p.helix_jump_label.rgb, bg), FLOOR_SYNTAX))
+
+    # Diff hunk fills and the yank flash sit behind code.
+    for label, colour, alpha in (("hunk-added", p.success.rgb, p.hunk_alpha),
+                                 ("hunk-deleted", p.error.rgb, p.hunk_alpha),
+                                 ("yank", p.hue["amber"].rgb, p.yank_alpha)):
+        for base_name, base in (("bg", bg), ("active-line", p.active_line.rgb)):
+            worst = min(contrast(t, composite(colour, alpha, base)) for t in p.protected_texts)
+            checks.append(Check(f"overlay/{label}-on-{base_name}", worst, FLOOR_OVERLAY))
     return checks
 
 
@@ -794,7 +857,25 @@ def build_style(p: Palette) -> dict:
         "terminal.ansi.dim_magenta": td["violet"].hex(),
         "terminal.ansi.dim_cyan": td["cyan"].hex(),
         "terminal.ansi.dim_white": p.text_muted.hex(),
+        "terminal.ansi.background": ed.hex(),
     })
+
+    # ---- editor diff hunks -----------------------------------------------------------
+    style.update({
+        "editor.diff_hunk.added.background": p.success.hex(p.hunk_alpha),
+        "editor.diff_hunk.added.hollow_background": p.success.hex(p.hunk_hollow_alpha),
+        "editor.diff_hunk.added.hollow_border": p.success.hex(p.hunk_border_alpha),
+        "editor.diff_hunk.deleted.background": p.error.hex(p.hunk_alpha),
+        "editor.diff_hunk.deleted.hollow_background": p.error.hex(p.hunk_hollow_alpha),
+        "editor.diff_hunk.deleted.hollow_border": p.error.hex(p.hunk_border_alpha),
+    })
+
+    # ---- vim / helix mode indicators ----------------------------------------------------
+    for mode, (chip, label) in p.vim.items():
+        style[f"vim.{mode}.background"] = chip.hex()
+        style[f"vim.{mode}.foreground"] = label.hex()
+    style["vim.yank.background"] = h["amber"].hex(p.yank_alpha)
+    style["vim.helix_jump_label.foreground"] = p.helix_jump_label.hex()
 
     # ---- collaboration cursors ---------------------------------------------------
     player_hues = ["violet", "cyan", "jade", "tangerine", "rose", "azure", "amber", "orchid"]

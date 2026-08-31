@@ -2,9 +2,12 @@
 
 A theme family for [Zed](https://zed.dev), in three variants: **Dark**, **OLED** and **Light**.
 
-Built for Zed specifically — 160 UI colour keys and 62 syntax keys per variant, covering the
-minimap, indent guides, debugger, version-control gutter and collaboration cursors, not just the
-handful of keys a ported TextMate theme fills in.
+Built for Zed specifically — **every one of the 185 colour keys** the Zed theme schema accepts,
+plus 62 syntax keys, per variant. That includes the Vim and Helix mode indicators, editor diff
+hunks, minimap, indent guides, debugger and collaboration cursors — not just the handful of keys
+a ported TextMate theme fills in.
+
+For reference, Zed's own bundled One theme sets 139 of the 185.
 
 | Variant | Background | Syntax plane | Minimum contrast |
 |---|---|---|---|
@@ -79,6 +82,14 @@ foreground; colour is reserved for the things you actually scan for. Definitions
 `function.definition`, `constructor`, `title` — are **bold**, so you can find where something is
 declared without reading the file.
 
+### Mode indicators are judged against themselves
+
+A Vim mode chip carries its own label, so the contract is the label against the chip rather than
+against the editor. Each of the eight mode colours gets a neutral solved to 7:1 on its own
+background — dark labels on the bright chips of a dark variant, light labels on the deep chips of
+the light one. Diff hunk fills and the yank flash sit *behind* code, so they take the overlay
+contract below instead.
+
 ### Selections are solved too, not eyeballed
 
 A selection is drawn *under* your code. Push its opacity up so you can see what you have selected
@@ -152,14 +163,18 @@ python3 tools/build_theme.py --check   # verify only, writes nothing
 python3 tools/validate_theme.py        # structural + key-coverage validation
 ```
 
-`build_theme.py` runs 29 contrast assertions per variant and checks perceptual separation, and
+`build_theme.py` runs 44 contrast assertions per variant and checks perceptual separation, and
 refuses to write the theme if any fail.
 
 `validate_theme.py` checks the shipped JSON independently of the generator, so a bug in
 `build_theme.py` cannot vouch for its own output. It verifies structure and colour format, key
-coverage against a frozen copy of Zed's own built-in One theme (`tools/required_keys.json`), and
-re-derives all 4,092 overlay contrast measurements from the JSON alone. Both scripts exit non-zero
-on failure and need nothing beyond the Python standard library.
+coverage, and re-derives all 4,092 overlay contrast measurements from the JSON alone. Both scripts
+exit non-zero on failure and need nothing beyond the Python standard library.
+
+Coverage is checked against `tools/required_keys.json` — every non-deprecated `#[serde(rename)]`
+in Zed's own `ThemeColorsContent` and `StatusColorsContent`. An earlier version of this repo
+baselined against the One theme's key set instead, which silently passed a theme missing 25 keys,
+because One does not set them either. A baseline has to be the schema, not another theme.
 
 Full per-colour measurements are in [`docs/PALETTE.md`](docs/PALETTE.md).
 
