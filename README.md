@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/dr-syntax-logo.png" alt="Dr. Syntax" width="180">
+  <img src="website/assets/dr-syntax-logo.png" alt="Dr. Syntax" width="180">
 </p>
 
 <h1 align="center">Dr. Syntax</h1>
@@ -190,14 +190,23 @@ because One does not set them either. A baseline has to be the schema, not anoth
 Full per-colour measurements are in [`docs/PALETTE.md`](docs/PALETTE.md).
 
 ```
-python3 tools/build_preview.py         # regenerate docs/index.html
+python3 tools/build_site.py            # regenerate website/
 ```
 
-[`docs/index.html`](docs/index.html) is the project page, published at
-**[chrisnicholson30.github.io/Dr.-Syntax](https://chrisnicholson30.github.io/Dr.-Syntax/)**: all
-three variants rendered in a mock editor on real TypeScript, the measured hue table, and a chart
-of reachable chroma by hue showing the light-gamut dead zones. Colours are read out of
-`themes/dr-syntax.json`, so the page cannot drift from what ships.
+[`website/`](website/) is the preview site, published at
+**[chrisnicholson30.github.io/Dr.-Syntax](https://chrisnicholson30.github.io/Dr.-Syntax/)**:
+
+| Page | What it holds |
+|---|---|
+| `index.html` | Hero, live preview across five languages, three-variant comparison, install |
+| `preview.html` | Every sample in every variant, plus terminal, diff and Vim mode colours |
+| `palette.html` | All 185 interface keys and 62 syntax tokens, with measured contrast |
+| `method.html` | OKLCH planes, the gamut evidence, and the full contract table |
+
+Colours are read out of `themes/dr-syntax.json` at build time, so the site cannot drift from what
+ships. Code samples are highlighted by a small scanner in `build_site.py` rather than marked up by
+hand; it is verified to round-trip its input exactly, so a preview can never show code the sample
+does not contain.
 
 The site deploys from `.github/workflows/pages.yml`, which runs both verification scripts first —
 a failing contrast assertion fails the deploy.

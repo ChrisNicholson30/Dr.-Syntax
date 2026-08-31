@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Method · Dr. Syntax</title>
+<meta name="description" content="How Dr. Syntax is built: OKLCH lightness planes, solved contrast floors, and the sRGB gamut limits that shape the light variant.">
+<link rel="icon" href="assets/dr-syntax-logo.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<nav class="nav"><div class="wrap nav-in">
+  <a class="brandmark" href="index.html"><img src="assets/dr-syntax-logo.webp" alt=""> Dr. Syntax</a>
+  <div class="nav-links"><a href="index.html">Overview</a><a href="preview.html">Preview</a><a href="palette.html">Palette</a><a href="method.html" aria-current="page">Method</a><a class="ext" href="https://github.com/ChrisNicholson30/Dr.-Syntax">GitHub ↗</a></div>
+</div></nav>
+<main class="wrap">
+<section>
+  <p class="eyebrow">Method</p>
+  <h1 style="font-size:34px">Derived, not picked</h1>
+  <p class="lead">Most themes are a list of hex codes chosen by eye. That produces two problems
+    you feel rather than see — and both are measurable, so both are solved rather than guessed.</p>
+</section>
+
+<section>
+  <h2>Colours that look equal are not equal</h2>
+  <p class="note">Two hex values with the same apparent brightness can differ by 30–40% in
+    perceived lightness depending on hue, because human vision is far more sensitive to green
+    than to blue. A “green” and a “blue” picked to match will not match, and your eye re-adapts
+    every time it crosses one. Over a working day that is fatigue you cannot point at.</p>
+  <p class="note">Dr. Syntax is authored in OKLCH, a perceptually uniform space, and every syntax
+    token in a variant sits on one shared lightness plane.</p>
+</section>
+
+<section>
+  <h2>The plane is solved, not chosen</h2>
+  <p class="note">sRGB chroma varies sharply and non-obviously with lightness, so the plane that
+    yields the most vivid palette is rarely where intuition puts it. The build searches for the
+    lightness that maximises mean achievable chroma across all eight hues, subject to every hue
+    clearing its contrast floor.</p>
+  <p class="note">For the dark variant that returned L=0.737. The value picked by eye first was
+    0.82 — which cost about 15% chroma for contrast headroom nothing needed.</p>
+  <dl class="readout">
+  <div class="cell"><dt>Lightness plane</dt><dd data-stat="plane" data-fmt="plane">—</dd></div>
+  <div class="cell"><dt>Min syntax contrast</dt><dd data-stat="minSyntax" data-fmt="ratio">—</dd></div>
+  <div class="cell"><dt>Comments</dt><dd data-stat="comment" data-fmt="ratio">—</dd></div>
+  <div class="cell"><dt>Plain code</dt><dd data-stat="foreground" data-fmt="ratio">—</dd></div>
+  <div class="cell"><dt>Mean chroma</dt><dd data-stat="chroma">—</dd></div>
+</dl>
+  <div class="controls"><span class="switch-label">Variant</span><div class="switch" data-variant-tabs role="tablist" aria-label="Variant"><button class="tab-btn" role="tab" data-key="dark" aria-selected="true">Dark</button><button class="tab-btn" role="tab" data-key="oled" aria-selected="false">OLED</button><button class="tab-btn" role="tab" data-key="light" aria-selected="false">Light</button></div></div>
+</section>
+
+<section>
+  <h2>Why Light is not Dark inverted</h2>
+  <p class="note">Maximum chroma reachable at each variant's own lightness plane. At the
+    lightness AAA demands on a light background, two regions of sRGB collapse: around 60–120°
+    and 165–240°, colour can only reach roughly 0.08 chroma, which renders as mud. A naive
+    inversion drops tokens straight into them. The dots mark where the Light variant actually
+    sites its eight hues.</p>
+  <div class="chart-wrap">
+    <div class="legend">
+      <span><i></i> Dark plane</span><span><i class="dash"></i> Light plane</span>
+      <span><i class="zone"></i> Light dead zones</span><span>● Light hue positions</span>
+    </div>
+    <svg viewBox="0 0 720 210" role="img" class="chart" aria-label="Maximum reachable chroma by hue angle, dark versus light">
+<rect x="151.3" y="14" width="111.3" height="170" class="deadzone"/>
+<text x="207.0" y="26" class="chart-zone">yellow</text>
+<rect x="346.2" y="14" width="139.2" height="170" class="deadzone"/>
+<text x="415.8" y="26" class="chart-zone">teal</text>
+<line x1="40" y1="130.9" x2="708" y2="130.9" class="grid"/>
+<text x="32" y="133.9" class="chart-tick" text-anchor="end">0.1</text>
+<line x1="40" y1="77.8" x2="708" y2="77.8" class="grid"/>
+<text x="32" y="80.8" class="chart-tick" text-anchor="end">0.2</text>
+<line x1="40" y1="24.6" x2="708" y2="24.6" class="grid"/>
+<text x="32" y="27.6" class="chart-tick" text-anchor="end">0.3</text>
+<text x="40.0" y="202" class="chart-tick" text-anchor="middle">0°</text>
+<text x="207.0" y="202" class="chart-tick" text-anchor="middle">90°</text>
+<text x="374.0" y="202" class="chart-tick" text-anchor="middle">180°</text>
+<text x="541.0" y="202" class="chart-tick" text-anchor="middle">270°</text>
+<text x="708.0" y="202" class="chart-tick" text-anchor="middle">360°</text>
+<path d="M40.0,90.6 L49.3,93.7 L58.6,96.0 L67.8,97.5 L77.1,98.4 L86.4,98.7 L95.7,98.3 L104.9,97.3 L114.2,95.7 L123.5,93.3 L132.8,90.0 L142.1,87.0 L151.3,92.2 L160.6,96.1 L169.9,99.2 L179.2,101.4 L188.4,102.9 L197.7,103.8 L207.0,104.0 L216.3,103.6 L225.6,102.6 L234.8,100.9 L244.1,98.5 L253.4,95.3 L262.7,91.0 L271.9,85.6 L281.2,78.6 L290.5,69.6 L299.8,57.9 L309.1,60.9 L318.3,76.2 L327.6,87.2 L336.9,95.4 L346.2,101.7 L355.4,106.5 L364.7,110.2 L374.0,113.0 L383.3,115.0 L392.6,116.4 L401.8,117.2 L411.1,117.4 L420.4,117.1 L429.7,116.3 L438.9,114.8 L448.2,112.7 L457.5,109.8 L466.8,106.0 L476.1,101.0 L485.3,103.4 L494.6,106.5 L503.9,108.9 L513.2,110.6 L522.4,111.7 L531.7,112.3 L541.0,112.2 L550.3,111.6 L559.6,110.5 L568.8,108.7 L578.1,106.3 L587.4,103.0 L596.7,98.8 L605.9,93.3 L615.2,86.4 L624.5,77.4 L633.8,65.5 L643.1,49.6 L652.3,43.9 L661.6,56.8 L670.9,67.0 L680.2,75.1 L689.4,81.5 L698.7,86.6 L708.0,90.6" class="curve curve-dark"/>
+<path d="M40.0,89.4 L49.3,90.3 L58.6,90.7 L67.8,90.8 L77.1,90.3 L86.4,89.4 L95.7,90.4 L104.9,102.2 L114.2,110.8 L123.5,117.3 L132.8,122.3 L142.1,126.3 L151.3,129.3 L160.6,131.7 L169.9,133.5 L179.2,134.8 L188.4,135.7 L197.7,136.2 L207.0,136.3 L216.3,136.1 L225.6,135.5 L234.8,134.5 L244.1,133.1 L253.4,131.1 L262.7,128.6 L271.9,125.4 L281.2,121.2 L290.5,115.9 L299.8,108.9 L309.1,110.6 L318.3,119.8 L327.6,126.4 L336.9,131.2 L346.2,135.0 L355.4,137.8 L364.7,140.0 L374.0,141.7 L383.3,142.9 L392.6,143.7 L401.8,144.2 L411.1,144.4 L420.4,144.2 L429.7,143.7 L438.9,142.8 L448.2,141.6 L457.5,139.8 L466.8,137.5 L476.1,134.5 L485.3,130.6 L494.6,125.3 L503.9,118.0 L513.2,107.2 L522.4,88.9 L531.7,23.9 L541.0,31.2 L550.3,37.4 L559.6,42.9 L568.8,47.7 L578.1,52.0 L587.4,55.9 L596.7,59.5 L605.9,62.9 L615.2,66.1 L624.5,69.1 L633.8,72.1 L643.1,74.9 L652.3,77.7 L661.6,80.3 L670.9,82.7 L680.2,84.8 L689.4,86.7 L698.7,88.3 L708.0,89.4" class="curve curve-light"/>
+<circle cx="680.2" cy="84.8" r="3.2" class="mark"/>
+<circle cx="618.9" cy="66.1" r="3.2" class="mark"/>
+<circle cx="559.6" cy="42.9" r="3.2" class="mark"/>
+<circle cx="507.6" cy="118.0" r="3.2" class="mark"/>
+<circle cx="407.4" cy="144.4" r="3.2" class="mark"/>
+<circle cx="310.9" cy="110.6" r="3.2" class="mark"/>
+<circle cx="136.5" cy="122.3" r="3.2" class="mark"/>
+<circle cx="80.8" cy="90.3" r="3.2" class="mark"/>
+</svg>
+  </div>
+  <p class="note">Siting the light hues outside those zones recovered 13% mean chroma and 47%
+    hue separation. One honest limit remains: <code>function</code> on Light is a deep teal at
+    chroma 0.075, the strongest that hue region holds at 7:1. Reaching a vivid cyan there would
+    mean dropping to roughly 4.5:1. The floor was kept and the chroma given up.</p>
+</section>
+
+<section>
+  <h2>The contracts</h2>
+  <p class="note">The design states an intent and the lightness is solved by binary search to
+    land on it. The build fails if any of these is missed.</p>
+  <div class="table-scroll"><table>
+    <thead><tr><th>State</th><th>Floor</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Syntax, plain background</td><td class="mono">7:1</td><td class="role">WCAG AAA body text</td></tr>
+      <tr><td>Comments</td><td class="mono">5.8:1</td><td class="role">Present, but recessive</td></tr>
+      <tr><td>Inlay hints</td><td class="mono">6:1</td><td class="role">Read, not decoration — and must survive a selection</td></tr>
+      <tr><td>Any token under a selection or search match</td><td class="mono">3.5:1</td><td class="role">Transient state; above WCAG's 3:1 non-text threshold</td></tr>
+      <tr><td>Vim mode label on its chip</td><td class="mono">7:1</td><td class="role">The chip carries its own label</td></tr>
+      <tr><td>Perceptual gap between any two token hues</td><td class="mono">0.050</td><td class="role">Oklab distance; below this two colours start to blur</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>Verify it yourself</h2>
+  <p class="note"><code>build_theme.py</code> runs 44 contrast assertions per variant and refuses
+    to write the theme if any fail. <code>validate_theme.py</code> checks the shipped JSON
+    independently of the generator — structure, colour format, key coverage against the schema's
+    own key set, and 4,092 token-on-overlay contrast measurements re-derived from the JSON
+    alone — so a bug in the generator cannot vouch for its own output.</p>
+  <pre><code>python3 tools/build_theme.py --check
+python3 tools/validate_theme.py</code></pre>
+</section>
+</main>
+<footer><div class="wrap">
+  <span>Generated from <code>themes/dr-syntax.json</code>. Contrast measured on final 8-bit
+  sRGB values.</span>
+  <span><a href="https://github.com/ChrisNicholson30/Dr.-Syntax">Source</a> · MIT licensed</span>
+</div></footer>
+<script>const DATA = {"dark":{"name":"Dr. Syntax Dark","appearance":"dark","short":"Dark","ui":{"bg":"#0c0f15ff","editor":"#13161dff","elevated":"#1d2027ff","titlebar":"#0c0f15ff","tabbar":"#06090fff","tabactive":"#13161dff","tabinactive":"#06090fff","statusbar":"#0c0f15ff","border":"#2e3239ff","borderv":"#21252bff","text":"#d6dbe4ff","muted":"#90959dff","fg":"#b4b8c1ff","linenum":"#6b7078ff","activelinenum":"#b8bcc5ff","activeline":"#20242aff","indentguide":"#21252bff","match":"#d5a10032","accent":"#9797ffff","error":"#ff7c75ff","warning":"#de9b00ff","success":"#5ac562ff","added":"#5ac562ff","modified":"#de9b00ff","vcdeleted":"#ff7c75ff","terminalbg":"#13161dff","terminalfg":"#b4b8c1ff","vimnormal-bg":"#35b5ffff","vimnormal-fg":"#1e2228ff"},"syn":{"kw":"#f678b9ff","fn":"#00c1c9ff","str":"#10c97fff","typ":"#d5a100ff","num":"#ff8243ff","prop":"#35b5ffff","cmt":"#8594a4ff","punc":"#9198a6ff","tag":"#d684eeff"},"plane":0.737,"chroma":0.156,"minSyntax":7.16,"comment":5.83,"foreground":9.11,"selectionAlpha":0.188,"editorBg":"#13161d","hues":[{"role":"rose","label":"keyword \u00b7 control flow","hex":"#f678b9","angle":350,"chroma":0.17,"ratio":7.16},{"role":"orchid","label":"tag \u00b7 namespace \u00b7 title","hex":"#d684ee","angle":318,"chroma":0.17,"ratio":7.24},{"role":"violet","label":"attribute \u00b7 preprocessor","hex":"#9d9eff","angle":282,"chroma":0.14,"ratio":7.56},{"role":"azure","label":"property \u00b7 member","hex":"#35b5ff","angle":240,"chroma":0.152,"ratio":7.93},{"role":"cyan","label":"function \u00b7 method","hex":"#00c1c9","angle":200,"chroma":0.125,"ratio":8.16},{"role":"jade","label":"string \u00b7 literal text","hex":"#10c97f","angle":158,"chroma":0.17,"ratio":8.35},{"role":"amber","label":"type \u00b7 class \u00b7 enum","hex":"#d5a100","angle":85,"chroma":0.151,"ratio":7.69},{"role":"tangerine","label":"number \u00b7 boolean \u00b7 constant","hex":"#ff8243","angle":45,"chroma":0.17,"ratio":7.35}],"ansi":["#2c3037ff","#ff7c75ff","#5ac562ff","#de9b00ff","#35b5ffff","#9d9effff","#00c1c9ff","#b4b8c1ff"],"ansiBright":["#72777fff","#ffa69fff","#7bdc80ff","#f8b330ff","#7fcbffff","#b7baffff","#00dce5ff","#d6dbe4ff"],"vim":[{"mode":"normal","bg":"#35b5ffff","fg":"#1e2228ff","ratio":7.0},{"mode":"insert","bg":"#10c97fff","fg":"#22262dff","ratio":7.0},{"mode":"replace","bg":"#f678b9ff","fg":"#15181fff","ratio":7.02},{"mode":"visual","bg":"#9d9effff","fg":"#1a1d24ff","ratio":7.04},{"mode":"visual_line","bg":"#d684eeff","fg":"#161920ff","ratio":7.03},{"mode":"visual_block","bg":"#00c1c9ff","fg":"#21242bff","ratio":7.01},{"mode":"helix_normal","bg":"#ff8243ff","fg":"#181b21ff","ratio":7.0},{"mode":"helix_select","bg":"#d5a100ff","fg":"#1c1f26ff","ratio":7.01}]},"oled":{"name":"Dr. Syntax OLED","appearance":"dark","short":"OLED","ui":{"bg":"#000000ff","editor":"#000000ff","elevated":"#0c0f16ff","titlebar":"#000000ff","tabbar":"#0f1218ff","tabactive":"#000000ff","tabinactive":"#0f1218ff","statusbar":"#000000ff","border":"#2a2e35ff","borderv":"#1b1e25ff","text":"#d9dee7ff","muted":"#8b9098ff","fg":"#c9cdd7ff","linenum":"#646971ff","activelinenum":"#b7bcc5ff","activeline":"#13161dff","indentguide":"#1b1e25ff","match":"#e9b53138","accent":"#9190f8ff","error":"#ffa098ff","warning":"#f2b036ff","success":"#7bd67fff","added":"#7bd67fff","modified":"#f2b036ff","vcdeleted":"#ffa098ff","terminalbg":"#000000ff","terminalfg":"#c9cdd7ff","vimnormal-bg":"#75c7ffff","vimnormal-fg":"#2e3139ff"},"syn":{"kw":"#ff97caff","fn":"#00d7e0ff","str":"#57da98ff","typ":"#e9b531ff","num":"#ffa379ff","prop":"#75c7ffff","cmt":"#8291a1ff","punc":"#89909eff","tag":"#e59dfcff"},"plane":0.799,"chroma":0.133,"minSyntax":10.53,"comment":6.51,"foreground":13.2,"selectionAlpha":0.216,"editorBg":"#000000","hues":[{"role":"rose","label":"keyword \u00b7 control flow","hex":"#ff97ca","angle":350,"chroma":0.137,"ratio":10.53},{"role":"orchid","label":"tag \u00b7 namespace \u00b7 title","hex":"#e59dfc","angle":318,"chroma":0.15,"ratio":10.56},{"role":"violet","label":"attribute \u00b7 preprocessor","hex":"#b2b5ff","angle":282,"chroma":0.104,"ratio":10.95},{"role":"azure","label":"property \u00b7 member","hex":"#75c7ff","angle":240,"chroma":0.113,"ratio":11.37},{"role":"cyan","label":"function \u00b7 method","hex":"#00d7e0","angle":200,"chroma":0.136,"ratio":11.8},{"role":"jade","label":"string \u00b7 literal text","hex":"#57da98","angle":158,"chroma":0.15,"ratio":11.89},{"role":"amber","label":"type \u00b7 class \u00b7 enum","hex":"#e9b531","angle":85,"chroma":0.15,"ratio":11.12},{"role":"tangerine","label":"number \u00b7 boolean \u00b7 constant","hex":"#ffa379","angle":45,"chroma":0.123,"ratio":10.77}],"ansi":["#07090fff","#ffa098ff","#7bd67fff","#f2b036ff","#75c7ffff","#b2b5ffff","#00d7e0ff","#c9cdd7ff"],"ansiBright":["#6b7078ff","#ffc5bfff","#99ee9cff","#ffcc7cff","#addcffff","#ced1ffff","#3cf0f9ff","#d9dee7ff"],"vim":[{"mode":"normal","bg":"#75c7ffff","fg":"#2e3139ff","ratio":7.04},{"mode":"insert","bg":"#57da98ff","fg":"#31343cff","ratio":7.05},{"mode":"replace","bg":"#ff97caff","fg":"#292c34ff","ratio":7.0},{"mode":"visual","bg":"#b2b5ffff","fg":"#2b2f36ff","ratio":7.01},{"mode":"visual_line","bg":"#e59dfcff","fg":"#292c34ff","ratio":7.02},{"mode":"visual_block","bg":"#00d7e0ff","fg":"#31343bff","ratio":7.0},{"mode":"helix_normal","bg":"#ffa379ff","fg":"#2a2d35ff","ratio":7.06},{"mode":"helix_select","bg":"#e9b531ff","fg":"#2c3037ff","ratio":7.01}]},"light":{"name":"Dr. Syntax Light","appearance":"light","short":"Light","ui":{"bg":"#f0f2f7ff","editor":"#f9fbffff","elevated":"#ffffffff","titlebar":"#f0f2f7ff","tabbar":"#eef0f5ff","tabactive":"#f9fbffff","tabinactive":"#eef0f5ff","statusbar":"#f0f2f7ff","border":"#ced0d4ff","borderv":"#dddfe3ff","text":"#2d2e32ff","muted":"#696a6eff","fg":"#404245ff","linenum":"#87888cff","activelinenum":"#45464aff","activeline":"#e8eaefff","indentguide":"#dddfe3ff","match":"#813c0039","accent":"#5952d2ff","error":"#9d0016ff","warning":"#6e4b00ff","success":"#006517ff","added":"#006517ff","modified":"#6e4b00ff","vcdeleted":"#9d0016ff","terminalbg":"#f9fbffff","terminalfg":"#404245ff","vimnormal-bg":"#005397ff","vimnormal-fg":"#f0f3f7ff"},"syn":{"kw":"#920069ff","fn":"#005f61ff","str":"#00641cff","typ":"#813c00ff","num":"#9d0020ff","prop":"#005397ff","cmt":"#576474ff","punc":"#5e6166ff","tag":"#74209bff"},"plane":0.439,"chroma":0.15,"minSyntax":7.14,"comment":5.82,"foreground":9.73,"selectionAlpha":0.184,"editorBg":"#f9fbff","hues":[{"role":"rose","label":"keyword \u00b7 control flow","hex":"#920069","angle":345,"chroma":0.187,"ratio":8.36},{"role":"orchid","label":"tag \u00b7 namespace \u00b7 title","hex":"#74209b","angle":312,"chroma":0.19,"ratio":8.37},{"role":"violet","label":"attribute \u00b7 preprocessor","hex":"#4538b6","angle":280,"chroma":0.19,"ratio":8.13},{"role":"azure","label":"property \u00b7 member","hex":"#005397","angle":252,"chroma":0.131,"ratio":7.55},{"role":"cyan","label":"function \u00b7 method","hex":"#005f61","angle":198,"chroma":0.075,"ratio":7.22},{"role":"jade","label":"string \u00b7 literal text","hex":"#00641c","angle":146,"chroma":0.134,"ratio":7.14},{"role":"amber","label":"type \u00b7 class \u00b7 enum","hex":"#813c00","angle":52,"chroma":0.113,"ratio":7.86},{"role":"tangerine","label":"number \u00b7 boolean \u00b7 constant","hex":"#9d0020","angle":22,"chroma":0.177,"ratio":8.26}],"ansi":["#d0d2d6ff","#9d0016ff","#006517ff","#6e4b00ff","#005397ff","#4538b6ff","#005f61ff","#404245ff"],"ansiBright":["#838488ff","#7a000fff","#004d0fff","#543800ff","#003f75ff","#342396ff","#00484aff","#2d2e32ff"],"vim":[{"mode":"normal","bg":"#005397ff","fg":"#f0f3f7ff","ratio":7.03},{"mode":"insert","bg":"#00641cff","fg":"#f6f9fdff","ratio":7.0},{"mode":"replace","bg":"#920069ff","fg":"#e5e8ecff","ratio":7.04},{"mode":"visual","bg":"#4538b6ff","fg":"#e8ebefff","ratio":7.04},{"mode":"visual_line","bg":"#74209bff","fg":"#e5e7ebff","ratio":7.0},{"mode":"visual_block","bg":"#005f61ff","fg":"#f5f8fcff","ratio":7.02},{"mode":"helix_normal","bg":"#9d0020ff","fg":"#e6e9edff","ratio":7.03},{"mode":"helix_select","bg":"#813c00ff","fg":"#eceef2ff","ratio":7.01}]}};</script>
+<script src="assets/site.js"></script>
+</body>
+</html>

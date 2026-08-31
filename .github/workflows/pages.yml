@@ -50,11 +50,11 @@ jobs:
         with:
           python-version: "3.11"
       - name: Rebuild the site from the committed theme
-        run: python3 tools/build_preview.py
+        run: python3 tools/build_site.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: docs
+          path: website
 
   deploy:
     name: Deploy to Pages
